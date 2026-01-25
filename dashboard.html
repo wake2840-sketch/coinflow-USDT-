@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body onload="loadDashboard()">
+    <div class="container">
+        <div class="glass-card" style="text-align:center; border:1px solid var(--secondary);">
+            <p>أهلاً، <span id="displayUser"></span></p>
+            <h2 style="font-size:35px;">$<span id="userBalance">0.00</span></h2>
+            <div class="mining-circle" style="width:50px; height:50px;"></div>
+            <p style="font-size:11px; color:var(--primary)">التعدين الذكي قيد التشغيل...</p>
+        </div>
+
+        <div class="glass-card">
+            <h3>إيداع USDT (TRC20)</h3>
+            <div style="display:flex; gap:5px; background:#020617; padding:5px; border-radius:10px; border:1px solid #1e293b; margin-bottom:10px;">
+                <input type="text" value="TAEhVTpKt3TZtp3GGr2Sna9T7n6SsFzgHP" id="sysAddr" readonly style="border:none; margin:0; font-size:11px; color:var(--primary); background:transparent; width:100%;">
+                <button onclick="copyAddress()" style="width:auto; padding:5px 15px; font-size:11px;">نسخ</button>
+            </div>
+            <button onclick="notifyAdmin()">تأكيد التحويل للإدارة ⬆️</button>
+        </div>
+
+        <div class="glass-card" style="border-color:var(--danger)">
+            <h3 style="color:var(--danger)">سحب الأرباح</h3>
+            <input type="text" id="witWal" placeholder="عنوان محفظتك USDT">
+            <input type="number" id="witAmt" placeholder="المبلغ">
+            <button onclick="withdraw()" style="background:var(--danger)">طلب سحب ⬇️</button>
+        </div>
+
+        <div class="glass-card"><h3>السجل</h3><div id="logs"></div></div>
+        <button onclick="localStorage.removeItem('active_user'); location.href='index.html'" style="background:#333">تسجيل خروج</button>
+    </div>
+    <div id="toast"></div>
+    <script src="script.js"></script>
+</body>
+</html>

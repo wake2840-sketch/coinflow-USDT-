@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Admin Panel</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div id="admAuth" class="glass-card">
+            <h3>نظام الإدارة</h3>
+            <input type="password" id="admKey" placeholder="رمز الوصول السري">
+            <button onclick="checkAdm()">دخول</button>
+        </div>
+        <div id="admBox" style="display:none;">
+            <div class="glass-card"><h2>إدارة الحسابات</h2><div id="usersList"></div></div>
+            <button onclick="location.href='index.html'">خروج</button>
+        </div>
+    </div>
+    <div id="toast"></div>
+    <script src="script.js"></script>
+    <script>
+        function checkAdm() {
+            if(document.getElementById("admKey").value === CONFIG.admin_key) {
+                document.getElementById("admAuth").style.display="none";
+                document.getElementById("admBox").style.display="block";
+                renderAdm();
+            } else { showMsg("❌ الرمز خاطئ"); }
+        }
+        function renderAdm() {
+            const container = document.getElementById("usersList");
+            container.innerHTML = db.users.map((u, i) => `
+                <div class="glass-card" style="margin-bottom:10px; border-left:4px solid var(--primary);">
+                    <b>${u.username}</b> | رصيد: ${u.balance.toFixed(2)}$ <br>
+                    <div style="display:flex; gap:5px; margin-top:10px;">
+                        <button onclick="adminAdjust(${i})" style="font-size:10px;">تعديل $</button>
+                        <button onclick="loginAsUser('${u.username}')" style="font-size:10px; background:#444">دخول الحساب</button>
+                        <button onclick="if(confirm('حذف؟')){db.users.splice(${i},1);save();renderAdm();}" style="font-size:10px; background:var(--danger);">حذف</button>
+                    </div>
+                </div>
+            `).join('');
+        }
+    </script>
+</body>
+</html>
