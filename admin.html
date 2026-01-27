@@ -1,99 +1,0 @@
-<!DOCTYPE html>
-<html lang="ar">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة الإدارة السرية | CoinFlow AI</title>
-    <link rel="stylesheet" href="style.css">
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
-    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
-</head>
-<body>
-
-    <div class="container" id="adminAuth">
-        <div class="glass-card" style="margin-top: 100px;">
-            <h2 style="color: var(--primary);">نظام التحكم المركزي</h2>
-            <p>يرجى إدخال رمز الوصول للمسؤول</p>
-            <input type="password" id="adminPin" placeholder="الرمز السري">
-            <button onclick="checkAdmin()">دخول النظام</button>
-        </div>
-    </div>
-
-    <div class="container" id="adminContent" style="display:none;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-            <h1 style="color: var(--primary);">إدارة المستخدمين ⚙️</h1>
-            <button onclick="location.reload()" style="width: 80px; font-size: 12px;">تحديث</button>
-        </div>
-        
-        <div id="adminList">
-            <p style="text-align: center;">جاري تحميل البيانات...</p>
-        </div>
-    </div>
-
-    <script src="script.js"></script>
-    <script>
-        // التحقق من الرمز السري الذي اخترته
-        function checkAdmin() {
-            const pin = document.getElementById('adminPin').value;
-            if(pin === "30003100") { 
-                document.getElementById('adminAuth').style.display = 'none';
-                document.getElementById('adminContent').style.display = 'block';
-                loadAdminData();
-            } else {
-                alert("⚠️ الرمز السري الذي أدخلته غير صحيح!");
-            }
-        }
-
-        // جلب بيانات جميع المستخدمين من Firebase
-        function loadAdminData() {
-            db.ref('users').on('value', s => {
-                const users = s.val();
-                let html = '';
-                
-                if(!users) {
-                    html = '<div class="glass-card">لا يوجد مستخدمون مسجلون بعد.</div>';
-                } else {
-                    for(let id in users) {
-                        html += `
-                        <div class="glass-card" style="text-align: right; margin-bottom: 15px; border-right: 4px solid var(--primary);">
-                            <p style="color: var(--primary); font-weight: bold; margin-bottom: 5px;">👤 بريد المستخدم:</p>
-                            <p style="font-size: 14px;">${users[id].email}</p>
-                            <hr style="border: 0.1px solid #1e293b; margin: 10px 0;">
-                            <p>💰 الرصيد الحالي: <span style="color: #00ff00;">${(users[id].balance || 0).toFixed(2)} USDT</span></p>
-                            
-                            <div style="display: flex; gap: 10px; margin-top: 15px;">
-                                <button onclick="setBal('${id}')" style="background: var(--secondary);">تعديل الرصيد 💰</button>
-                                <button onclick="reply('${id}')" style="background: #f39c12;">رد دردشة 💬</button>
-                            </div>
-                        </div>`;
-                    }
-                }
-                document.getElementById('adminList').innerHTML = html;
-            });
-        }
-
-        // دالة تغيير الرصيد
-        function setBal(id) {
-            let amount = parseFloat(prompt("أدخل الرصيد الجديد بالدولار (سيتم استبدال الرصيد الحالي):"));
-            if(!isNaN(amount)) {
-                db.ref('users/' + id).update({ balance: amount })
-                .then(() => alert("✅ تم تحديث الرصيد بنجاح"))
-                .catch(err => alert("❌ خطأ: " + err.message));
-            }
-        }
-
-        // دالة الرد على الدردشة
-        function reply(id) {
-            let msg = prompt("اكتب ردك الذي سيظهر للمستخدم في صفحة الدردشة:");
-            if(msg) {
-                db.ref('users/' + id + '/messages').push({
-                    s: 'a', // 'a' تعني Admin (اللون الرمادي في الجات)
-                    t: msg,
-                    time: new Date().getTime()
-                }).then(() => alert("✅ تم إرسال الرد للمستخدم"));
-            }
-        }
-    </script>
-</body>
-</html>
