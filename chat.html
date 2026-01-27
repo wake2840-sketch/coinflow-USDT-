@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>  | CoinFlow</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        #chatBox { height: 350px; overflow-y: auto; display: flex; flex-direction: column; padding: 10px; background: rgba(0,0,0,0.2); border-radius: 15px; margin-bottom: 15px; }
+        .m { padding: 12px; border-radius: 12px; margin: 6px; max-width: 80%; font-size: 14px; line-height: 1.5; }
+        .u { align-self: flex-start; background: var(--primary); color: #000; }
+        .a { align-self: flex-end; background: #222; color: #fff; border: 1px solid #444; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="glass-card">
+            <h3 style="margin-bottom: 15px;">  </h3>
+            <div id="chatBox"></div>
+            <input type="text" id="msgInp" placeholder="  ...">
+            <button onclick="send()"> </button>
+            <button onclick="location.href='dashboard.html'" style="background: #444; margin-top: 10px;"> </button>
+        </div>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="script.js"></script>
+    <script>
+        function send() {
+            const t = document.getElementById('msgInp').value;
+            const u = firebase.auth().currentUser;
+            if(t && u) {
+                db.ref('users/'+u.uid+'/messages').push({ s:'u', t:t, time: Date.now() });
+                document.getElementById('msgInp').value = '';
+            }
+        }
+        firebase.auth().onAuthStateChanged(user => {
+            if(user) {
+                db.ref('users/'+user.uid+'/messages').on('value', s => {
+                    let h = '';
+                    s.forEach(m => { const d = m.val(); h += `<div class="m ${d.s}">${d.t}</div>`; });
+                    const c = document.getElementById('chatBox');
+                    c.innerHTML = h; c.scrollTop = c.scrollHeight;
+                });
+            }
+        });
+    </script>
+</body>
+</html>
