@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8"><title>الدردشة</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+</head>
+<body class="chat-screen" onload="initChat()">
+    <div style="background:#1f2c33; padding:15px; display:flex; gap:10px; align-items:center;">
+        <button onclick="history.back()" style="width:50px;">🔙</button>
+        <b>دعم CoinFlow</b>
+    </div>
+    
+    <div id="msgBox" style="flex:1; overflow:auto; padding:15px; display:flex; flex-direction:column;"></div>
+
+    <div style="background:#1f2c33; padding:10px; display:flex; gap:10px;">
+        <input type="text" id="mInp" placeholder="اكتب رسالة..." style="margin:0;">
+        <button onclick="send()" style="width:80px;">إرسال</button>
+    </div>
+
+    <script src="script.js"></script>
+    <script>
+        function initChat() {
+            auth.onAuthStateChanged(user => {
+                db.ref('users/' + user.uid + '/messages').on('value', s => {
+                    const m = s.val();
+                    document.getElementById('msgBox').innerHTML = m ? Object.values(m).map(x => `<div class="msg msg-${x.s}">${x.t}</div>`).join('') : '';
+                    document.getElementById('msgBox').scrollTop = 99999;
+                });
+            });
+        }
+        function send() {
+            const txt = document.getElementById('mInp').value;
+            if(txt) {
+                db.ref('users/' + auth.currentUser.uid + '/messages').push({s:'u', t:txt});
+                document.getElementById('mInp').value = '';
+            }
+        }
+    </script>
+</body>
+</html>
