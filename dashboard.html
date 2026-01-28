@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CoinFlow | التعدين</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <div class="glass-card">
+            <div class="mining-wheel"><span style="animation: none; color:var(--primary); font-weight:bold;">AI</span></div>
+            <h1 id="userBalance" style="font-size: 40px; margin: 15px 0;">$0.00</h1>
+            <p style="color:var(--primary)">نظام التعدين يعمل بكفاءة عالية</p>
+        </div>
+
+        <div class="glass-card">
+            <h3>إيداع USDT (TRC20)</h3>
+            <div id="walletAddr" style="background:#000; padding:12px; border-radius:10px; font-size:11px; margin:10px 0; border:1px dashed var(--primary); color:#00ff00;">TAEhVTpKt3TZtp3GGr2Sna9T7n6SsFzgHP</div>
+            <button onclick="copyAddr()">نسخ عنوان الإيداع</button>
+        </div>
+
+        <div class="glass-card">
+            <h3>سحب فوري للأرباح</h3>
+            <input type="number" id="drawAmt" placeholder="حدد المبلغ">
+            <input type="text" id="drawWall" placeholder="عنوان محفظة المستلم">
+            <button onclick="autoWithdraw()" style="background:#e74c3c;">تأكيد وخصم الرصيد</button>
+        </div>
+
+        <button onclick="location.href='chat.html'">الدعم والدردشة 💬</button>
+    </div>
+
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="script.js"></script>
+    <script>
+        function copyAddr() {
+            navigator.clipboard.writeText("TAEhVTpKt3TZtp3GGr2Sna9T7n6SsFzgHP");
+            alert("تم النسخ! ارسل الإثبات في الدردشة");
+        }
+
+        function autoWithdraw() {
+            const amt = parseFloat(document.getElementById('drawAmt').value);
+            const wall = document.getElementById('drawWall').value;
+            const user = firebase.auth().currentUser;
+            if(!amt || !wall) return alert("اكمل البيانات");
+
+            db.ref('users/'+user.uid).once('value', s => {
+                const bal = s.val().balance || 0;
+                if(bal >= amt) {
+                    const newBal = bal - amt;
+                    db.ref('users/'+user.uid).update({ balance: newBal }).then(() => {
+                        db.ref('users/'+user.uid+'/messages').push({
+                            s:'u', t:`🚨 طلب سحب: ${amt}$ إلى ${wall} (تم الخصم تلقائياً)`, type:'text', time:Date.now()
+                        });
+                        alert("تم السحب وخصم المبلغ من رصيدك بنجاح!");
+                    });
+                } else { alert("رصيدك غير كافٍ!"); }
+            });
+        }
+    </script>
+</body>
+</html>

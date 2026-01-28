@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <title> </title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container" id="lock">
+        <div class="glass-card">
+            <h2> </h2>
+            <input type="password" id="pin" placeholder=" ">
+            <button onclick="login()"></button>
+        </div>
+    </div>
+    <div class="container" id="panel" style="display:none;">
+        <div id="uList"></div>
+    </div>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
+    <script src="script.js"></script>
+    <script>
+        function login() {
+            if(document.getElementById('pin').value === "30003100") {
+                document.getElementById('lock').style.display='none';
+                document.getElementById('panel').style.display='block';
+                load();
+            }
+        }
+        function load() {
+            db.ref('users').on('value', s => {
+                let h = '';
+                s.forEach(u => {
+                    const d = u.val(); const uid = u.key;
+                    h += `<div class="glass-card" style="text-align:right;">
+                        <p> ${d.email} |  ${d.balance || 0}$</p>
+                        <div id="chat-${uid}" style="height:150px; overflow-y:auto; background:#000; padding:5px; margin:10px 0; border-radius:10px;"></div>
+                        <input type="text" id="inp-${uid}" placeholder="..." style="margin:2px;">
+                        <button onclick="reply('${uid}')"></button>
+                        <button onclick="editB('${uid}')" style="background:#f39c12;"> </button>
+                    </div>`;
+                    setTimeout(() => listen(uid), 100);
+                });
+                document.getElementById('uList').innerHTML = h;
+            });
+        }
+        function listen(uid) {
+            db.ref('users/'+uid+'/messages').on('value', s => {
+                let h = '';
+                s.forEach(m => { 
+                    const d = m.val();
+                    const cont = d.type === 'image' ? `<img src="${d.t}" style="max-width:80px;">` : d.t;
+                    h += `<p style="color:${d.s=='u'?'#00d2ff':'#fff'}; font-size:12px;">${cont}</p>`;
+                });
+                document.getElementById('chat-'+uid).innerHTML = h;
+            });
+        }
+        function reply(uid) {
+            const t = document.getElementById('inp-'+uid).value;
+            if(t) db.ref('users/'+uid+'/messages').push({ s:'a', t:t, type:'text', time:Date.now() });
+        }
+        function editB(uid) {
+            let n = prompt(" :");
+            if(n) db.ref('users/'+uid).update({ balance: parseFloat(n) });
+        }
+    </script>
+</body>
+</html>
