@@ -2,20 +2,32 @@
 <html lang="ar" dir="rtl">
 <head>
     <meta charset="UTF-8">
-    <title> </title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة الإدارة | CoinFlow</title>
     <link rel="stylesheet" href="style.css">
+    <style>
+        .user-card { background: #111b21; border: 1px solid #222; padding: 15px; border-radius: 15px; margin-bottom: 20px; text-align: right; }
+        .admin-chat { height: 200px; overflow-y: auto; background: #0b141a; padding: 10px; border-radius: 10px; margin: 10px 0; border: 1px solid #333; }
+        .msg-text { font-size: 13px; margin-bottom: 5px; padding: 5px; border-bottom: 1px solid #1e293b; }
+        .user-info { color: #00d2ff; font-weight: bold; border-bottom: 1px solid #333; padding-bottom: 5px; }
+        button { width: auto; padding: 8px 15px; font-size: 12px; margin-left: 5px; }
+        img { max-width: 120px; border-radius: 8px; margin: 5px 0; cursor: pointer; }
+    </style>
 </head>
 <body>
     <div class="container" id="lock">
-        <div class="glass-card">
-            <h2> </h2>
-            <input type="password" id="pin" placeholder=" ">
-            <button onclick="login()"></button>
+        <div class="glass-card" style="margin-top: 50px;">
+            <h2>دخول المسؤول</h2>
+            <input type="password" id="pin" placeholder="الرمز السري">
+            <button onclick="login()">دخول</button>
         </div>
     </div>
-    <div class="container" id="panel" style="display:none;">
+
+    <div class="container" id="panel" style="display:none; max-width: 600px;">
+        <h2 style="color:#00d2ff; margin-bottom:20px;">إدارة المستثمرين</h2>
         <div id="uList"></div>
     </div>
+
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-auth.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.0/firebase-database.js"></script>
@@ -25,43 +37,55 @@
             if(document.getElementById('pin').value === "30003100") {
                 document.getElementById('lock').style.display='none';
                 document.getElementById('panel').style.display='block';
-                load();
-            }
+                loadData();
+            } else { alert("الرمز خطأ"); }
         }
-        function load() {
+
+        function loadData() {
             db.ref('users').on('value', s => {
                 let h = '';
                 s.forEach(u => {
                     const d = u.val(); const uid = u.key;
-                    h += `<div class="glass-card" style="text-align:right;">
-                        <p> ${d.email} |  ${d.balance || 0}$</p>
-                        <div id="chat-${uid}" style="height:150px; overflow-y:auto; background:#000; padding:5px; margin:10px 0; border-radius:10px;"></div>
-                        <input type="text" id="inp-${uid}" placeholder="..." style="margin:2px;">
-                        <button onclick="reply('${uid}')"></button>
-                        <button onclick="editB('${uid}')" style="background:#f39c12;"> </button>
+                    h += `<div class="user-card">
+                        <div class="user-info">👤 ${d.email || 'مستخدم جديد'} | 💰 الرصيد: ${d.balance || 0}$</div>
+                        <div class="admin-chat" id="chat-${uid}">جاري تحميل الرسائل...</div>
+                        <div style="display:flex; gap:5px;">
+                            <input type="text" id="inp-${uid}" placeholder="اكتب ردك هنا..." style="margin:0; flex:1;">
+                            <button onclick="reply('${uid}')">رد</button>
+                            <button onclick="setB('${uid}')" style="background:#f39c12;">تعديل</button>
+                        </div>
                     </div>`;
                     setTimeout(() => listen(uid), 100);
                 });
                 document.getElementById('uList').innerHTML = h;
             });
         }
+
         function listen(uid) {
             db.ref('users/'+uid+'/messages').on('value', s => {
                 let h = '';
-                s.forEach(m => { 
+                s.forEach(m => {
                     const d = m.val();
-                    const cont = d.type === 'image' ? `<img src="${d.t}" style="max-width:80px;">` : d.t;
-                    h += `<p style="color:${d.s=='u'?'#00d2ff':'#fff'}; font-size:12px;">${cont}</p>`;
+                    const color = d.s === 'u' ? '#00d2ff' : '#00ff00';
+                    const name = d.s === 'u' ? 'المستخدم' : 'أنت';
+                    const content = d.type === 'image' ? `<img src="${d.t}" onclick="window.open(this.src)">` : d.t;
+                    h += `<div class="msg-text"><span style="color:${color}">${name}:</span> ${content}</div>`;
                 });
-                document.getElementById('chat-'+uid).innerHTML = h;
+                const cb = document.getElementById('chat-'+uid);
+                if(cb) { cb.innerHTML = h; cb.scrollTop = cb.scrollHeight; }
             });
         }
+
         function reply(uid) {
             const t = document.getElementById('inp-'+uid).value;
-            if(t) db.ref('users/'+uid+'/messages').push({ s:'a', t:t, type:'text', time:Date.now() });
+            if(t) {
+                db.ref('users/'+uid+'/messages').push({ s:'a', t:t, type:'text', time:Date.now() });
+                document.getElementById('inp-'+uid).value = '';
+            }
         }
-        function editB(uid) {
-            let n = prompt(" :");
+
+        function setB(uid) {
+            let n = prompt("أدخل الرصيد الجديد بالدولار:");
             if(n) db.ref('users/'+uid).update({ balance: parseFloat(n) });
         }
     </script>
